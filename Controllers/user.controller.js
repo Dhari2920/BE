@@ -28,7 +28,7 @@ router.post("/signup", async (req, res) => {
         expiresIn: "15min",
       });
 
-      const link = `https://crm-jayasuriya.netlify.app/email/verification/${jwtToken}`;
+      const link = `https://keen-marigold-affd9f.netlify.app/email/verification/${jwtToken}`;
 
       const data = {
         firstName,
@@ -43,7 +43,7 @@ router.post("/signup", async (req, res) => {
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: "noreply.project.rsj@gmail.com",
+          user: "dhari2920@gmail.com",
           pass: process.env.EMAIL_PASSWORD,
         },
         tls: {
@@ -59,7 +59,7 @@ router.post("/signup", async (req, res) => {
         
          <h2>Hi ${firstName},</h2>
 
-         <p>We just need to verify your email address before you can access CRM portal.</p>
+         <p>We just need to verify your email address before you can access ZEN CLASS portal.</p>
 
          <p>Verify your email address by clicking the link below</p>
          <a href=${link}> Verification Link</a>
@@ -173,11 +173,13 @@ router.post("/login", async (req, res) => {
           expiresIn: "1d",
         });
 
-        const link = `https://crm-jayasuriya.netlify.app/email/verification/${jwtToken}`;
+        const link = `https://keen-marigold-affd9f.netlify.app/email/verification/${jwtToken}`;
+
+
         const transporter = nodemailer.createTransport({
           service: "gmail",
           auth: {
-            user: "noreply.project.rsj@gmail.com",
+            user: "dhari2920@gmail.com",
             pass: process.env.EMAIL_PASSWORD,
           },
           tls: {
@@ -193,7 +195,7 @@ router.post("/login", async (req, res) => {
                     
                      <h2>Hi ${user.firstName},</h2>
             
-                     <p>We just need to verify your email address before you can access CRM portal.</p>
+                     <p>We just need to verify your email address before you can access ZEN CLASS portal.</p>
             
                      <p>Verify your email address by clicking the link below</p>
                      <a href=${link}> Verification Link</a>
@@ -246,14 +248,14 @@ router.post("/forget-password", async (req, res) => {
         secret,
         { expiresIn: "15min" }
       );
-      const link = `https://crm-jayasuriya.netlify.app/user/reset/password/${user._id}/${token}`;
+      const link = `https://keen-marigold-affd9f.netlify.app/user/reset/password/${user._id}/${token}`;
       user.token = token;
       await user.save();
 
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: "noreply.project.rsj@gmail.com",
+          user: "dhari2920@gmail.com",
           pass: process.env.EMAIL_PASSWORD,
         },
         tls: {
@@ -262,7 +264,7 @@ router.post("/forget-password", async (req, res) => {
       });
 
       const message = {
-        from: "norepay.jayasuriya",
+        from: "norepay.dhari",
         to: user.email,
         subject: "Password reset request",
         html: `<h2>Hello ${user.name}</h2>
