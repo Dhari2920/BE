@@ -2,10 +2,9 @@ const router = require("express").Router();
 const { employeeModel } = require("../Models/employee.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const secretKey = "da%ui#43F%d^3*4u346h";
+const secretKey = "ccLTI4O8Y0OOhTuugyUZqIvYR6E7Pt8k";
 
-//Employee SignUp
-
+// Employee SignUp
 router.post("/signup", async (req, res) => {
   try {
     const employee = await employeeModel.findOne({ email: req.body.email });
@@ -21,7 +20,9 @@ router.post("/signup", async (req, res) => {
         password: hashedPassword,
         role,
       };
-      const employee = await employeeModel.create(data);
+
+      await employeeModel.create(data);
+
       res.status(200).json({
         success: true,
         message: "User SignUp Successfully",
@@ -41,16 +42,17 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-//Employee Login
-
+// Employee Login
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const employee = await employeeModel.findOne({ email: req.body.email });
+    const employee = await employeeModel.findOne({ email });
 
     if (employee) {
-      if (await bcrypt.compare(password, employee.password)) {
-        const token = await jwt.sign(
+      const isPasswordValid = await bcrypt.compare(password, employee.password);
+
+      if (isPasswordValid) {
+        const token = jwt.sign(
           {
             email: employee.email,
             firstName: employee.firstName,
@@ -59,6 +61,7 @@ router.post("/login", async (req, res) => {
           secretKey,
           { expiresIn: "1d" }
         );
+
         res.status(200).json({
           success: true,
           message: "User SignIn Successfully",
@@ -71,11 +74,12 @@ router.post("/login", async (req, res) => {
           message: "Invalid Password",
         });
       }
-    } else
+    } else {
       res.status(400).json({
         success: false,
-        message: "User Does't Exist",
+        message: "User Doesn't Exist",
       });
+    }
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -85,29 +89,57 @@ router.post("/login", async (req, res) => {
   }
 });
 
-const validate = async (req, res, next) => {
-  if (req.headers.authorization) {
-    const token = req.headers.authorization.split(" ")[1];
-    const data = await jwt.decode(token);
-    if (Math.round(new Date() / 1000) < data.exp) {
-      next();
-    } else {
-      res.status(400).json({
-        message: "Token Experied",
-      });
-    }
-  } else {
-    res.status(400).json({
+// Middleware to validate JWT token
+const validateToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(400).json({
+      success: false,
       message: "Token Not Found",
+    });
+  }
+
+  try {
+    const decodedToken = jwt.verify(token, secretKey);
+    req.employee = decodedToken;
+    next();
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: "Token Expired or Invalid",
     });
   }
 };
 
-//Employee Data
-
-router.get("/data", validate, async (req, res) => {
+// Employee Data
+router.get("/data",  async (req, res) => {
   try {
-    const employee = await employeeModel.find();
+    const employeeData = await employeeModel.find();
+    res.status(200).json({
+      success: true,
+      message: "Employee Data Fetched Successfully",
+      data: employeeData,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error,
+    });
+  }
+});
+
+// Employee Data By ID
+router.get("/data/:id", validateToken, async (req, res) => {
+  try {
+    const employee = await employeeModel.findById(req.params.id);
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
     res.status(200).json({
       success: true,
       message: "Employee Data Fetched Successfully",
@@ -122,36 +154,22 @@ router.get("/data", validate, async (req, res) => {
   }
 });
 
-//Employee Data By ID
-
-router.get("/data/:id", validate, async (req, res) => {
-  try {
-    const employee = await employeeModel.findOne({ _id: req.params.id });
-    res.status(200).json({
-      success: true,
-      message: "Employee Data Fetched Successfully",
-      data: employee,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      error,
-    });
-  }
-});
-
-//Edit Employee Details
-
+// Edit Employee Details
 router.post("/update/:id", async (req, res) => {
   try {
     const { firstName, lastName, role } = req.body;
-    const employee = await employeeModel.findOne({ _id: req.params.id });
-    employee.firstName = firstName;
-    employee.lastName = lastName;
-    employee.role = role;
+    const employee = await employeeModel.findByIdAndUpdate(
+      req.params.id,
+      { firstName, lastName, role },
+      { new: true }
+    );
 
-    await employee.save();
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -166,14 +184,19 @@ router.post("/update/:id", async (req, res) => {
   }
 });
 
-//Delete Employee Data
-
+// Delete Employee Data
 router.delete("/delete/:id", async (req, res) => {
   try {
-    const user = await employeeModel.deleteOne({ _id: req.params.id });
+    const employee = await employeeModel.findByIdAndDelete(req.params.id);
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
     res.status(200).json({
       success: true,
-      message: "User Deleted Successfully",
+      message: "Employee Deleted Successfully",
     });
   } catch (error) {
     res.status(500).json({

@@ -12,8 +12,9 @@ require('dotenv').config()
 MongoDBConnection()
 
 app.use(cors())
+
 app.use(express.json())
-app.get("/" ,(req,res)=>res.send('welcome'))
+// app.get("/" ,(req,res)=>res.send('welcome'))
 app.use('/employee',employeeRouter)
 app.use('/user',userRouter)
 app.use('/quote',quoteRouter)

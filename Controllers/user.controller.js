@@ -28,7 +28,7 @@ router.post("/signup", async (req, res) => {
         expiresIn: "15min",
       });
 
-      const link = `https://keen-marigold-affd9f.netlify.app/email/verification/${jwtToken}`;
+      const link = `http://localhost:3000/${jwtToken}`;
 
       const data = {
         firstName,
@@ -173,7 +173,7 @@ router.post("/login", async (req, res) => {
           expiresIn: "1d",
         });
 
-        const link = `https://keen-marigold-affd9f.netlify.app/email/verification/${jwtToken}`;
+        const link = `http://localhost:3000/${jwtToken}`;
 
 
         const transporter = nodemailer.createTransport({
@@ -248,7 +248,7 @@ router.post("/forget-password", async (req, res) => {
         secret,
         { expiresIn: "15min" }
       );
-      const link = `https://keen-marigold-affd9f.netlify.app/user/reset/password/${user._id}/${token}`;
+      const link = `http://localhost:3000/${user._id}/${token}`;
       user.token = token;
       await user.save();
 
